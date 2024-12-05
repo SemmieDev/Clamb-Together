@@ -123,7 +123,7 @@ public class ClambTogether : MelonMod {
 
         lastUpdateTime = Time.time;
 
-        var offset = 0;
+        var offset = 0U;
         UpdatePacketData.WriteTransform(ref offset, localHead);
         UpdatePacketData.WriteTransform(ref offset, localLeftHand);
         UpdatePacketData.WriteTransform(ref offset, localRightHand);
@@ -135,7 +135,7 @@ public class ClambTogether : MelonMod {
             unsafe {
                 SteamNetworking.SendP2PPacket(
                     member.Id,
-                    UpdatePacketData.GetBuffer(),
+                    UpdatePacketData.buffer,
                     UpdatePacketData.SIZE,
                     0,
                     P2PSend.Unreliable
@@ -151,7 +151,7 @@ public class ClambTogether : MelonMod {
 
             unsafe {
                 success = SteamNetworking.ReadP2PPacket(
-                    UpdatePacketData.GetBuffer(),
+                    UpdatePacketData.buffer,
                     UpdatePacketData.SIZE,
                     ref size,
                     ref sender
