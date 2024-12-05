@@ -5,9 +5,9 @@ namespace ClambTogether;
 
 [RegisterTypeInIl2Cpp]
 public class OtherPlayerController : MonoBehaviour {
-    public Transform? head;
-    public Transform? leftHand;
-    public Transform? rightHand;
+    public Transform head = null!;
+    public Transform leftHand = null!;
+    public Transform rightHand = null!;
 
     public OtherPlayerController(IntPtr ptr) : base(ptr) {}
 

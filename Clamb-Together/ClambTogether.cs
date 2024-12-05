@@ -14,13 +14,13 @@ public class ClambTogether : MelonMod {
 
     private readonly Dictionary<ulong, OtherPlayerController> otherPlayerControllers = new ();
 
-    private GameObject otherPlayerPrefab;
+    private GameObject otherPlayerPrefab = null!;
     private bool inGame;
     private Lobby lobby;
     private float lastUpdateTime;
-    private Transform localHead;
-    private Transform localLeftHand;
-    private Transform localRightHand;
+    private Transform localHead = null!;
+    private Transform localLeftHand = null!;
+    private Transform localRightHand = null!;
 
     public override void OnInitializeMelon() {
         try {
@@ -66,6 +66,21 @@ public class ClambTogether : MelonMod {
             localLeftHand = characterController.transform.Find("Floor Offset/Palm_L_Target_Follower/VRIK_Left Arm_Target_Neo_V3_35_Exp_Decap");
             localRightHand = characterController.transform.Find("Floor Offset/Palm_R_Target_Follower/VRIK_Right Arm_Target_Neo_V3_35_Exp_Decap");
 
+            if (localHead == null) {
+                LoggerInstance.Error("Failed to find local head");
+                return;
+            }
+
+            if (localLeftHand == null) {
+                LoggerInstance.Error("Failed to find local left hand");
+                return;
+            }
+
+            if (localRightHand == null) {
+                LoggerInstance.Error("Failed to find local right hand");
+                return;
+            }
+
             // TODO: Add button to create lobby
             if (lobby.Id == 0 && SteamClient.Name == "SemmieDev") {
                 SteamMatchmaking.CreateLobbyAsync(250);
@@ -78,7 +93,7 @@ public class ClambTogether : MelonMod {
     }
 
     public override void OnUpdate() {
-        if (lobby.Id == 0 || Time.time - lastUpdateTime < UPDATE_DELAY) return;
+        if (lobby.Id == 0 || localHead == null || localLeftHand == null || localRightHand == null || Time.time - lastUpdateTime < UPDATE_DELAY) return;
 
         lastUpdateTime = Time.time;
 
