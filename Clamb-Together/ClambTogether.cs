@@ -296,11 +296,17 @@ public class ClambTogether : MelonMod {
 
     private void LeaveLobby() {
         if (lobby.Id != 0) {
+            lobby.Leave();
+
             foreach (var member in lobby.Members) {
                 SteamNetworking.CloseP2PSessionWithUser(member.Id);
             }
 
-            lobby.Leave();
+            foreach (var otherPlayerController in otherPlayerControllers.Values) {
+                Object.Destroy(otherPlayerController.gameObject);
+            }
+
+            otherPlayerControllers.Clear();
         }
     }
 
