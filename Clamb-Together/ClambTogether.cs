@@ -129,10 +129,10 @@ public class ClambTogether : MelonMod {
         UpdatePacketData.WriteTransform(ref offset, localRightHand);
         UpdatePacketData.WriteTransform(ref offset, localHammer);
 
-        unsafe {
-            foreach (var member in lobby.Members) {
-                if (member.Id == SteamClient.SteamId) continue;
+        foreach (var member in lobby.Members) {
+            if (member.Id == SteamClient.SteamId) continue;
 
+            unsafe {
                 SteamNetworking.SendP2PPacket(
                     member.Id,
                     UpdatePacketData.GetBuffer(),
@@ -141,53 +141,57 @@ public class ClambTogether : MelonMod {
                     P2PSend.Unreliable
                 );
             }
+        }
 
-            var size = UpdatePacketData.SIZE;
-            var sender = new SteamId();
+        var size = UpdatePacketData.SIZE;
+        var sender = new SteamId();
 
-            while (SteamNetworking.IsP2PPacketAvailable()) {
-                var success = SteamNetworking.ReadP2PPacket(
+        while (SteamNetworking.IsP2PPacketAvailable()) {
+            bool success;
+
+            unsafe {
+                success = SteamNetworking.ReadP2PPacket(
                     UpdatePacketData.GetBuffer(),
                     UpdatePacketData.SIZE,
                     ref size,
                     ref sender
                 );
-
-                if (!success || size != UpdatePacketData.SIZE) continue;
-
-                var exists = otherPlayerControllers.TryGetValue(sender, out var otherPlayerController);
-
-                if (!exists) {
-                    if (lobby.Members.All(member => member.Id != sender)) continue;
-
-                    var gameObject = Object.Instantiate(otherPlayerPrefab);
-
-                    gameObject.SetActive(true);
-                    gameObject.name = $"Other Player ({new Friend(sender).Name})";
-                    otherPlayerController = gameObject.GetComponent<OtherPlayerController>();
-
-                    otherPlayerControllers.Add(sender, otherPlayerController);
-                }
-
-                offset = 0;
-                UpdatePacketData.ReadTransform(ref offset, out var headPosition, out var headRotation);
-                UpdatePacketData.ReadTransform(ref offset, out var leftHandPosition, out var leftHandRotation);
-                UpdatePacketData.ReadTransform(ref offset, out var rightHandPosition, out var rightHandRotation);
-                UpdatePacketData.ReadTransform(ref offset, out var hammerPosition, out var hammerRotation);
-
-                otherPlayerController?.UpdateTransforms(
-                    headPosition,
-                    headRotation,
-                    leftHandPosition,
-                    leftHandRotation,
-                    rightHandPosition,
-                    rightHandRotation,
-                    hammerPosition,
-                    hammerRotation
-                );
-
-                if (!exists) otherPlayerController?.ResetInterpolation();
             }
+
+            if (!success || size != UpdatePacketData.SIZE) continue;
+
+            var exists = otherPlayerControllers.TryGetValue(sender, out var otherPlayerController);
+
+            if (!exists) {
+                if (lobby.Members.All(member => member.Id != sender)) continue;
+
+                var gameObject = Object.Instantiate(otherPlayerPrefab);
+
+                gameObject.SetActive(true);
+                gameObject.name = $"Other Player ({new Friend(sender).Name})";
+                otherPlayerController = gameObject.GetComponent<OtherPlayerController>();
+
+                otherPlayerControllers.Add(sender, otherPlayerController);
+            }
+
+            offset = 0;
+            UpdatePacketData.ReadTransform(ref offset, out var headPosition, out var headRotation);
+            UpdatePacketData.ReadTransform(ref offset, out var leftHandPosition, out var leftHandRotation);
+            UpdatePacketData.ReadTransform(ref offset, out var rightHandPosition, out var rightHandRotation);
+            UpdatePacketData.ReadTransform(ref offset, out var hammerPosition, out var hammerRotation);
+
+            otherPlayerController?.UpdateTransforms(
+                headPosition,
+                headRotation,
+                leftHandPosition,
+                leftHandRotation,
+                rightHandPosition,
+                rightHandRotation,
+                hammerPosition,
+                hammerRotation
+            );
+
+            if (!exists) otherPlayerController?.ResetInterpolation();
         }
     }
 
