@@ -309,6 +309,8 @@ public class ClambTogether : MelonMod {
             }
 
             foreach (var otherPlayerController in otherPlayerControllers.Values) {
+                if (otherPlayerController == null || otherPlayerController.gameObject == null) continue;
+
                 Object.Destroy(otherPlayerController.gameObject);
             }
 
