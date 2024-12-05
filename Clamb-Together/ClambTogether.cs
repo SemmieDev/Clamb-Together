@@ -10,8 +10,6 @@ using Object = UnityEngine.Object;
 namespace ClambTogether;
 
 public class ClambTogether : MelonMod {
-    private const float UPDATE_DELAY = 0.25f;
-
     private readonly Dictionary<ulong, OtherPlayerController> otherPlayerControllers = new ();
 
     private GameObject otherPlayerPrefab = null!;
@@ -93,7 +91,13 @@ public class ClambTogether : MelonMod {
     }
 
     public override void OnUpdate() {
-        if (lobby.Id == 0 || localHead == null || localLeftHand == null || localRightHand == null || Time.time - lastUpdateTime < UPDATE_DELAY) return;
+        if (
+            lobby.Id == 0 ||
+            localHead == null ||
+            localLeftHand == null ||
+            localRightHand == null ||
+            Time.time - lastUpdateTime < UpdatePacketData.UPDATE_DELAY
+        ) return;
 
         lastUpdateTime = Time.time;
 
@@ -126,7 +130,9 @@ public class ClambTogether : MelonMod {
 
                 if (!success || size != UpdatePacketData.SIZE) continue;
 
-                if (!otherPlayerControllers.TryGetValue(sender, out var otherPlayerController)) {
+                var exists = otherPlayerControllers.TryGetValue(sender, out var otherPlayerController);
+
+                if (!exists) {
                     if (lobby.Members.All(member => member.Id != sender)) continue;
 
                     var gameObject = Object.Instantiate(otherPlayerPrefab);
@@ -139,16 +145,20 @@ public class ClambTogether : MelonMod {
                 }
 
                 offset = 0;
-                UpdatePacketData.ReadTransform(ref offset, otherPlayerController.head);
-                UpdatePacketData.ReadTransform(ref offset, otherPlayerController.leftHand);
-                UpdatePacketData.ReadTransform(ref offset, otherPlayerController.rightHand);
+                UpdatePacketData.ReadTransform(ref offset, out var headPosition, out var headRotation);
+                UpdatePacketData.ReadTransform(ref offset, out var leftHandPosition, out var leftHandRotation);
+                UpdatePacketData.ReadTransform(ref offset, out var rightHandPosition, out var rightHandRotation);
 
-                var headPosition = otherPlayerController.head.position;
-                otherPlayerController.transform.position = new Vector3(
-                    headPosition.x,
-                    headPosition.y - 10,
-                    headPosition.z
+                otherPlayerController?.UpdateTransforms(
+                    headPosition,
+                    headRotation,
+                    leftHandPosition,
+                    leftHandRotation,
+                    rightHandPosition,
+                    rightHandRotation
                 );
+
+                if (!exists) otherPlayerController?.ResetInterpolation();
             }
         }
     }

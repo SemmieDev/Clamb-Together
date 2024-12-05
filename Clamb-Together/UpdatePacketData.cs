@@ -4,6 +4,7 @@ using UnityEngine;
 namespace ClambTogether;
 
 public static class UpdatePacketData {
+    public const float UPDATE_DELAY = 0.1f;
     public const uint SIZE = (POSITION_COMPONENT_SIZE * 3 + ROTATION_COMPONENT_SIZE * 3) * 3;
 
     private const uint POSITION_COMPONENT_SIZE = sizeof(short);
@@ -34,14 +35,14 @@ public static class UpdatePacketData {
         offset += sizeof(byte);
     }
 
-    public static void ReadTransform(ref int offset, Transform transform) {
-        transform.position = new Vector3(
+    public static void ReadTransform(ref int offset, out Vector3 position, out Quaternion rotation) {
+        position = new Vector3(
             Marshal.ReadInt16(updatePacketData, offset) / 100f,
             Marshal.ReadInt16(updatePacketData, offset += sizeof(short)) / 100f,
             Marshal.ReadInt16(updatePacketData, offset += sizeof(short)) / 100f
         );
 
-        transform.rotation.SetEulerAngles(
+        rotation = Quaternion.Euler(
             Marshal.ReadByte(updatePacketData, offset += sizeof(short)) * BYTE_TO_DEGREE,
             Marshal.ReadByte(updatePacketData, offset += sizeof(byte)) * BYTE_TO_DEGREE,
             Marshal.ReadByte(updatePacketData, offset += sizeof(byte)) * BYTE_TO_DEGREE
