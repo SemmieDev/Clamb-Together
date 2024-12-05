@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppRootMotion.FinalIK;
 using Il2CppXRClimbGame;
 using MelonLoader;
@@ -235,6 +236,45 @@ public class ClambTogether : MelonMod {
         vrik.solver.rightArm.target = rightHand;
 
         Object.DestroyImmediate(otherPlayerBody.GetComponent<LegsWalkAnimator>());
+
+        var foundPrefab = false;
+
+        foreach (var prefab in Resources.FindObjectsOfTypeAll<GameObject>()) {
+            if (prefab.name != "Neo_V3_35_Exp_OBE Body_Hat") continue;
+
+            foundPrefab = true;
+
+            var prefabBodyMeshRenderer = prefab.transform.Find("CC_Base_Body").GetComponent<SkinnedMeshRenderer>();
+            var prefabShirtMeshRenderer = prefab.transform.Find("Shirt").GetComponent<SkinnedMeshRenderer>();
+
+            var bodyMeshRenderer = otherPlayerBody.transform.Find("CC_Base_Body").GetComponent<SkinnedMeshRenderer>();
+            bodyMeshRenderer.sharedMesh = prefabBodyMeshRenderer.sharedMesh;
+            bodyMeshRenderer.sharedMaterials = prefabBodyMeshRenderer.sharedMaterials;
+
+            var shirtMeshRenderer = otherPlayerBody.transform.Find("Shirt").GetComponent<SkinnedMeshRenderer>();
+            shirtMeshRenderer.sharedMesh = prefabShirtMeshRenderer.sharedMesh;
+            shirtMeshRenderer.materials = prefabShirtMeshRenderer.materials;
+
+            var eyes = Object.Instantiate(
+                prefab.transform.Find("CC_Base_Eye").gameObject,
+                otherPlayerBody.transform
+            );
+            var eyesMeshRenderer = eyes.GetComponent<SkinnedMeshRenderer>();
+            var leftEyeBone = bodyMeshRenderer.rootBone.Find("CC_Base_Spine01/CC_Base_Spine02/CC_Base_NeckTwist01/CC_Base_NeckTwist02/CC_Base_Head/CC_Base_FacialBone/CC_Base_L_Eye");
+            var rightEyeBone = bodyMeshRenderer.rootBone.Find("CC_Base_Spine01/CC_Base_Spine02/CC_Base_NeckTwist01/CC_Base_NeckTwist02/CC_Base_Head/CC_Base_FacialBone/CC_Base_R_Eye");
+            var eyesBones = new Il2CppReferenceArray<Transform>(2);
+
+            eyesMeshRenderer.rootBone = rightEyeBone;
+            eyesBones[0] = leftEyeBone;
+            eyesBones[1] = rightEyeBone;
+            eyesMeshRenderer.bones = eyesBones;
+
+            break;
+        }
+
+        if (!foundPrefab) {
+            LoggerInstance.Error("Couldn't find complete human prefab, other players will be missing heads");
+        }
 
         var clonedHammerModel = Object.Instantiate(
             localHammer.gameObject,
