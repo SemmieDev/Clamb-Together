@@ -248,12 +248,20 @@ public class ClambTogether : MelonMod {
             var prefabShirtMeshRenderer = prefab.transform.Find("Shirt").GetComponent<SkinnedMeshRenderer>();
 
             var bodyMeshRenderer = otherPlayerBody.transform.Find("CC_Base_Body").GetComponent<SkinnedMeshRenderer>();
+            var bodyMaterials = new Il2CppReferenceArray<Material?>(6);
+
+            bodyMaterials[0] = prefabBodyMeshRenderer.sharedMaterials[0];
+            bodyMaterials[1] = bodyMeshRenderer.sharedMaterials[0];
+            bodyMaterials[2] = bodyMeshRenderer.sharedMaterials[1];
+            bodyMaterials[3] = bodyMeshRenderer.sharedMaterials[2];
+            bodyMaterials[4] = bodyMeshRenderer.sharedMaterials[3];
+            bodyMaterials[5] = prefabBodyMeshRenderer.sharedMaterials[5];
+
             bodyMeshRenderer.sharedMesh = prefabBodyMeshRenderer.sharedMesh;
-            bodyMeshRenderer.sharedMaterials = prefabBodyMeshRenderer.sharedMaterials;
+            bodyMeshRenderer.sharedMaterials = bodyMaterials;
 
             var shirtMeshRenderer = otherPlayerBody.transform.Find("Shirt").GetComponent<SkinnedMeshRenderer>();
             shirtMeshRenderer.sharedMesh = prefabShirtMeshRenderer.sharedMesh;
-            shirtMeshRenderer.materials = prefabShirtMeshRenderer.materials;
 
             var eyes = Object.Instantiate(
                 prefab.transform.Find("CC_Base_Eye").gameObject,
