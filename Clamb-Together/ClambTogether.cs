@@ -313,6 +313,11 @@ public class ClambTogether : MelonMod {
     }
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friend) {
+        if (!inGame) {
+            LoggerInstance.Warning("Requested joining a lobby whilst not in-game");
+            return;
+        }
+
         LeaveLobby();
 
         lobby.Join();
