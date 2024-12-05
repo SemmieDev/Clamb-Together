@@ -5,7 +5,7 @@ namespace ClambTogether;
 
 public static class UpdatePacketData {
     public const float UPDATE_DELAY = 0.1f;
-    public const uint SIZE = (POSITION_COMPONENT_SIZE * 3 + ROTATION_COMPONENT_SIZE * 3) * 3;
+    public const uint SIZE = (POSITION_COMPONENT_SIZE * 3 + ROTATION_COMPONENT_SIZE * 3) * 4;
 
     private const uint POSITION_COMPONENT_SIZE = sizeof(short);
     private const uint ROTATION_COMPONENT_SIZE = sizeof(byte);

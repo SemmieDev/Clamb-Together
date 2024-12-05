@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Globalization;
+﻿using System.Globalization;
 using Il2CppRootMotion.FinalIK;
 using Il2CppXRClimbGame;
 using MelonLoader;
@@ -21,6 +20,7 @@ public class ClambTogether : MelonMod {
     private Transform localHead = null!;
     private Transform localLeftHand = null!;
     private Transform localRightHand = null!;
+    private Transform localHammer = null!;
 
     public override void OnInitializeMelon() {
         var appId = 2709120U;
@@ -65,8 +65,6 @@ public class ClambTogether : MelonMod {
         if (sceneName == "Hike_V2" || sceneName == "Hike_V2_Demo") {
             inGame = true;
 
-            CreateOtherPlayerPrefab();
-
             var characterController = GameObject.FindWithTag("Character Controller");
 
             if (characterController == null) {
@@ -77,6 +75,7 @@ public class ClambTogether : MelonMod {
             localHead = characterController.transform.Find("Floor Offset/HMD/Main Camera/VRIK_Head_Target_Neo_V3_35_Exp_Decap");
             localLeftHand = characterController.transform.Find("Floor Offset/Palm_L_Target_Follower/VRIK_Left Arm_Target_Neo_V3_35_Exp_Decap");
             localRightHand = characterController.transform.Find("Floor Offset/Palm_R_Target_Follower/VRIK_Right Arm_Target_Neo_V3_35_Exp_Decap");
+            localHammer = GameObject.Find("/Item_Hammer/Model/Mesh/Sledgehammer_02").transform;
 
             if (localHead == null) {
                 LoggerInstance.Error("Failed to find local head");
@@ -92,6 +91,13 @@ public class ClambTogether : MelonMod {
                 LoggerInstance.Error("Failed to find local right hand");
                 return;
             }
+
+            if (localHammer == null) {
+                LoggerInstance.Error("Failed to find local hammer");
+                return;
+            }
+
+            CreateOtherPlayerPrefab();
 
             // TODO: Add button to create lobby
             if (lobby.Id == 0 && SteamClient.Name == "SemmieDev") {
@@ -110,6 +116,7 @@ public class ClambTogether : MelonMod {
             localHead == null ||
             localLeftHand == null ||
             localRightHand == null ||
+            localHammer == null ||
             Time.time - lastUpdateTime < UpdatePacketData.UPDATE_DELAY
         ) return;
 
@@ -119,6 +126,7 @@ public class ClambTogether : MelonMod {
         UpdatePacketData.WriteTransform(ref offset, localHead);
         UpdatePacketData.WriteTransform(ref offset, localLeftHand);
         UpdatePacketData.WriteTransform(ref offset, localRightHand);
+        UpdatePacketData.WriteTransform(ref offset, localHammer);
 
         unsafe {
             foreach (var member in lobby.Members) {
@@ -162,6 +170,7 @@ public class ClambTogether : MelonMod {
                 UpdatePacketData.ReadTransform(ref offset, out var headPosition, out var headRotation);
                 UpdatePacketData.ReadTransform(ref offset, out var leftHandPosition, out var leftHandRotation);
                 UpdatePacketData.ReadTransform(ref offset, out var rightHandPosition, out var rightHandRotation);
+                UpdatePacketData.ReadTransform(ref offset, out var hammerPosition, out var hammerRotation);
 
                 otherPlayerController?.UpdateTransforms(
                     headPosition,
@@ -169,7 +178,9 @@ public class ClambTogether : MelonMod {
                     leftHandPosition,
                     leftHandRotation,
                     rightHandPosition,
-                    rightHandRotation
+                    rightHandRotation,
+                    hammerPosition,
+                    hammerRotation
                 );
 
                 if (!exists) otherPlayerController?.ResetInterpolation();
@@ -201,10 +212,12 @@ public class ClambTogether : MelonMod {
         var head = new GameObject("Head").transform;
         var leftHand = new GameObject("Left Hand").transform;
         var rightHand = new GameObject("Right Hand").transform;
+        var hammer = new GameObject("Hammer").transform;
 
         head.parent = otherPlayerPrefab.transform;
         leftHand.parent = otherPlayerPrefab.transform;
         rightHand.parent = otherPlayerPrefab.transform;
+        hammer.parent = otherPlayerPrefab.transform;
 
         otherPlayerPrefab.AddComponent<OtherPlayerController>();
 
@@ -222,6 +235,15 @@ public class ClambTogether : MelonMod {
         vrik.solver.rightArm.target = rightHand;
 
         Object.DestroyImmediate(otherPlayerBody.GetComponent<LegsWalkAnimator>());
+
+        var clonedHammerModel = Object.Instantiate(
+            localHammer.gameObject,
+            hammer,
+            false
+        );
+
+        clonedHammerModel.transform.localPosition = Vector3.zero;
+        clonedHammerModel.transform.localRotation = Quaternion.identity;
     }
 
     private void LeaveLobby() {
