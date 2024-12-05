@@ -1,4 +1,6 @@
-﻿using Il2CppRootMotion.FinalIK;
+﻿using System.Diagnostics;
+using System.Globalization;
+using Il2CppRootMotion.FinalIK;
 using Il2CppXRClimbGame;
 using MelonLoader;
 using Steamworks;
@@ -21,8 +23,20 @@ public class ClambTogether : MelonMod {
     private Transform localRightHand = null!;
 
     public override void OnInitializeMelon() {
+        var appId = 2709120U;
+
+        if (File.Exists("steam_appid.txt")) {
+            try {
+                if (!uint.TryParse(File.OpenText("steam_appid.txt").ReadLine(), NumberStyles.None, CultureInfo.InvariantCulture, out appId)) {
+                    LoggerInstance.Error("Invalid app ID in steam_appid.txt");
+                }
+            } catch (Exception e) {
+                LoggerInstance.Error("Error whilst trying to read app ID from steam_appid.txt", e);
+            }
+        }
+
         try {
-            SteamClient.Init(2709120);
+            SteamClient.Init(appId);
         } catch (Exception e) {
             LoggerInstance.Error("Failed to initialize steam", e);
             Unregister("Failed to initialize steam");
