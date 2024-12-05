@@ -131,6 +131,8 @@ public class ClambTogether : MelonMod {
 
         unsafe {
             foreach (var member in lobby.Members) {
+                if (member.Id == SteamClient.SteamId) continue;
+
                 SteamNetworking.SendP2PPacket(
                     member.Id,
                     UpdatePacketData.GetBuffer(),
