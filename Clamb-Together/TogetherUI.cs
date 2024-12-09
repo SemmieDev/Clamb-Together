@@ -174,9 +174,13 @@ public class TogetherUI {
 
         var buttons = NewUIGameObject("Buttons", contents.transform);
 
+        var buttonsLayoutElement = buttons.AddComponent<LayoutElement>();
+        buttonsLayoutElement.minHeight = 45;
+        buttonsLayoutElement.flexibleHeight = 0;
+
         var buttonsLayout = buttons.AddComponent<HorizontalLayoutGroup>();
         buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
-        buttonsLayout.childForceExpandHeight = false;
+        buttonsLayout.childControlHeight = true;
 
         CreateButton("Button Back", buttons.transform, "Back", () => {
             panelsManager.EnablePanel(0, true);
