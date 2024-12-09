@@ -130,10 +130,9 @@ public class TogetherUI {
         FullSizeStretch(backgrounds.GetComponent<RectTransform>());
         FullSizeStretch(panelBackground);
 
-        var contents = new GameObject("Contents");
-        contents.transform.SetParent(panel, false);
+        var contents = NewUIGameObject("Contents", panel);
 
-        FullSizeStretch(AddRectTransform(contents));
+        FullSizeStretch(contents.GetComponent<RectTransform>());
 
         var contentsLayout = contents.AddComponent<VerticalLayoutGroup>();
         contentsLayout.padding = new RectOffset(100, 100, 100, 100);
@@ -143,21 +142,17 @@ public class TogetherUI {
         contentsLayout.childControlHeight = true;
         contentsLayout.childForceExpandHeight = false;
 
-        var entries = new GameObject("Entries");
-        entries.transform.SetParent(contents.transform, false);
-        AddRectTransform(entries);
+        var entries = NewUIGameObject("Entries", contents.transform);
         entries.AddComponent<LayoutElement>().flexibleHeight = 1;
 
-        var entriesViewport = new GameObject("Entries Viewport");
-        entriesViewport.transform.SetParent(entries.transform, false);
-        FullSizeStretch(AddRectTransform(entriesViewport));
+        var entriesViewport = NewUIGameObject("Entries Viewport", entries.transform);
+        FullSizeStretch(entriesViewport.GetComponent<RectTransform>());
         entriesViewport.AddComponent<Image>().sprite = Resources.GetBuiltinResource<Sprite>("UIMask");
         entriesViewport.AddComponent<Mask>().showMaskGraphic = false;
 
-        entriesContent = new GameObject("Entries Content");
-        entriesContent.transform.SetParent(entriesViewport.transform, false);
+        entriesContent = NewUIGameObject("Entries Content", entriesViewport.transform);
         SetRectTransform(
-            AddRectTransform(entriesContent),
+            entriesContent.GetComponent<RectTransform>(),
             0, 1,
             1, 1,
             0, 0,
@@ -177,9 +172,7 @@ public class TogetherUI {
         entriesScrollRect.horizontal = false;
         entriesScrollRect.viewport = entriesViewport.GetComponent<RectTransform>();
 
-        var buttons = new GameObject("Buttons");
-        buttons.transform.SetParent(contents.transform, false);
-        AddRectTransform(buttons);
+        var buttons = NewUIGameObject("Buttons", contents.transform);
 
         var buttonsLayout = buttons.AddComponent<HorizontalLayoutGroup>();
         buttonsLayout.childAlignment = TextAnchor.MiddleCenter;
@@ -287,6 +280,14 @@ public class TogetherUI {
                 () => lobby.Join()
             ));
         }
+    }
+
+    private static GameObject NewUIGameObject(string name, Transform parent) {
+        var gameObject = new GameObject(name);
+        gameObject.layer = LayerMask.NameToLayer("UI");
+        gameObject.transform.SetParent(parent, false);
+        AddRectTransform(gameObject);
+        return gameObject;
     }
 
     private static RectTransform AddRectTransform(GameObject gameObject) {
