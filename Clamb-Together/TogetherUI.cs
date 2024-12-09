@@ -20,7 +20,8 @@ public class TogetherUI {
 
     private GameObject entriesContent = null!;
     private Button buttonCreateLeave = null!;
-    private TMP_Text buttonTextCreateLeave = null!;
+    private TMP_Text buttonTextNormalCreateLeave = null!;
+    private TMP_Text buttonTextHighlightedCreateLeave = null!;
     private Button buttonRefresh = null!;
 
     public TogetherUI(ClambTogether clambTogether) {
@@ -62,7 +63,8 @@ public class TogetherUI {
     }
 
     public void OnLobbyEntered() {
-        buttonTextCreateLeave.text = "Leave Lobby";
+        buttonTextNormalCreateLeave.text = "Leave Lobby";
+        buttonTextHighlightedCreateLeave.text = "Leave Lobby";
         buttonCreateLeave.interactable = true;
 
         foreach (var lobbyEntry in lobbyEntries) {
@@ -77,8 +79,8 @@ public class TogetherUI {
     }
 
     public void OnLobbyLeft() {
-        buttonTextCreateLeave.text = "Create Lobby";
-        buttonCreateLeave.interactable = true;
+        buttonTextNormalCreateLeave.text = "Create Lobby";
+        buttonTextHighlightedCreateLeave.text = "Create Lobby";
 
         foreach (var gameObject in lobbyMemberEntries.Values) {
             Object.Destroy(gameObject);
@@ -190,15 +192,15 @@ public class TogetherUI {
 
         var createButton = CreateButton("Button Create/Leave Lobby", buttons.transform, "Create Lobby", () => {
             if (clambTogether.GetLobby().Id == 0) {
+                buttonCreateLeave.interactable = false;
                 clambTogether.CreateLobby();
             } else {
                 clambTogether.LeaveLobby();
             }
-
-            buttonCreateLeave.interactable = false;
         });
         buttonCreateLeave = createButton.GetComponent<Button>();
-        buttonTextCreateLeave = createButton.transform.Find("Normal/Text").GetComponent<TMP_Text>();
+        buttonTextNormalCreateLeave = createButton.transform.Find("Normal/Text").GetComponent<TMP_Text>();
+        buttonTextHighlightedCreateLeave = createButton.transform.Find("Highlighted/Text").GetComponent<TMP_Text>();
 
         return panelTogether;
     }
