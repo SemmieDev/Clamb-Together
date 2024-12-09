@@ -106,7 +106,8 @@ public class TogetherUI {
             false
         );
 
-        panelTogether.name = "Panel Together";
+        panelTogether.gameObject.SetActive(false);
+        panelTogether.gameObject.name = "Panel Together";
 
         var dissolveMask = panelTogether.transform.Find("Disolve Mask");
         var panel = dissolveMask.Find("Panel");
