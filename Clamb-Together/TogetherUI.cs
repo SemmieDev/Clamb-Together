@@ -158,14 +158,13 @@ public class TogetherUI {
             1, 1,
             0, 0,
             0, 0,
-            0.5f, 1
+            0, 1
         );
         entriesContent.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.MinSize;
 
         var entriesContentLayout = entriesContent.AddComponent<VerticalLayoutGroup>();
         entriesContentLayout.spacing = 20;
         entriesContentLayout.childControlWidth = true;
-        entriesContentLayout.childForceExpandWidth = true;
         entriesContentLayout.childForceExpandHeight = false;
 
         var entriesScrollRect = entries.AddComponent<ScrollRect>();
