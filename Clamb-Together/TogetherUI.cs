@@ -279,12 +279,16 @@ public class TogetherUI {
         lobbyEntries.Clear();
 
         foreach (var lobby in lobbiesTask.Result) {
-            lobbyEntries.Add(CreateButton(
+            var button = CreateButton(
                 "Lobby Entry",
                 entriesContent.transform,
                 $"{lobby.Owner.Name}'s lobby ({lobby.MemberCount}/{lobby.MaxMembers})",
                 () => lobby.Join()
-            ));
+            );
+
+            button.AddComponent<LayoutElement>().minHeight = 45;
+
+            lobbyEntries.Add(button);
         }
     }
 
