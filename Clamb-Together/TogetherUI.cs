@@ -204,6 +204,7 @@ public class TogetherUI {
 
         button.name = name;
         button.transform.Find("Normal/Text").GetComponent<TMP_Text>().text = text;
+        button.transform.Find("Highlighted/Text").GetComponent<TMP_Text>().text = text;
 
         var onClick = new Button.ButtonClickedEvent();
         button.GetComponent<Button>().onClick = onClick;
