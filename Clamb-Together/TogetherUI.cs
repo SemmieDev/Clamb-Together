@@ -223,7 +223,10 @@ public class TogetherUI {
         var textObject = Object.Instantiate(textTemplate, parent, false);
 
         textObject.name = name;
-        textObject.GetComponent<TMP_Text>().text = text;
+
+        var textComponent = textObject.GetComponent<TMP_Text>();
+        textComponent.text = text;
+        textComponent.alignment = TextAlignmentOptions.Left;
 
         LayoutRebuilder.MarkLayoutForRebuild(textObject.GetComponent<RectTransform>());
 
