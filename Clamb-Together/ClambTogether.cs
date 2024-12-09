@@ -22,6 +22,39 @@ public class ClambTogether : MelonMod {
     private Transform localLeftHand = null!;
     private Transform localRightHand = null!;
     private Transform localHammer = null!;
+    private TogetherUI? togetherUI;
+
+    public Lobby GetLobby() {
+        return lobby;
+    }
+
+    public void CreateLobby() {
+        LeaveLobby();
+
+        SteamMatchmaking.CreateLobbyAsync(250);
+    }
+
+    public void LeaveLobby() {
+        if (lobby.Id == 0) return;
+
+        foreach (var member in lobby.Members) {
+            SteamNetworking.CloseP2PSessionWithUser(member.Id);
+        }
+
+        lobby.Leave();
+
+        lobby = new Lobby(0);
+
+        foreach (var otherPlayerController in otherPlayerControllers.Values) {
+            if (otherPlayerController == null || otherPlayerController.gameObject == null) continue;
+
+            Object.Destroy(otherPlayerController.gameObject);
+        }
+
+        otherPlayerControllers.Clear();
+
+        togetherUI?.OnLobbyLeft();
+    }
 
     public override void OnInitializeMelon() {
         var appId = 2709120U;
@@ -37,7 +70,7 @@ public class ClambTogether : MelonMod {
         }
 
         try {
-            SteamClient.Init(appId);
+            SteamClient.Init(appId, false);
         } catch (Exception e) {
             LoggerInstance.Error("Failed to initialize steam", e);
             Unregister("Failed to initialize steam");
@@ -99,19 +132,18 @@ public class ClambTogether : MelonMod {
             }
 
             CreateOtherPlayerPrefab();
-
-            // TODO: Add button to create lobby
-            if (lobby.Id == 0 && SteamClient.Name == "SemmieDev") {
-                SteamMatchmaking.CreateLobbyAsync(250);
-            }
+            togetherUI = new TogetherUI(this);
         } else {
             inGame = false;
+            togetherUI = null;
 
             LeaveLobby();
         }
     }
 
     public override void OnUpdate() {
+        SteamClient.RunCallbacks();
+
         if (
             lobby.Id == 0 ||
             localHead == null ||
@@ -241,7 +273,7 @@ public class ClambTogether : MelonMod {
         vrik.solver.leftArm.target = leftHand;
         vrik.solver.rightArm.target = rightHand;
 
-        Object.DestroyImmediate(otherPlayerBody.GetComponent<LegsWalkAnimator>());
+        Object.Destroy(otherPlayerBody.GetComponent<LegsWalkAnimator>());
 
         var foundPrefab = false;
 
@@ -300,24 +332,6 @@ public class ClambTogether : MelonMod {
         clonedHammerModel.transform.localRotation = Quaternion.identity;
     }
 
-    private void LeaveLobby() {
-        if (lobby.Id != 0) {
-            lobby.Leave();
-
-            foreach (var member in lobby.Members) {
-                SteamNetworking.CloseP2PSessionWithUser(member.Id);
-            }
-
-            foreach (var otherPlayerController in otherPlayerControllers.Values) {
-                if (otherPlayerController == null || otherPlayerController.gameObject == null) continue;
-
-                Object.Destroy(otherPlayerController.gameObject);
-            }
-
-            otherPlayerControllers.Clear();
-        }
-    }
-
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friend) {
         if (!inGame) {
             LoggerInstance.Warning("Requested joining a lobby whilst not in-game");
@@ -339,6 +353,8 @@ public class ClambTogether : MelonMod {
         LoggerInstance.Msg($"Joined {lobby.Owner.Name}'s lobby");
 
         this.lobby = lobby;
+
+        togetherUI?.OnLobbyEntered();
     }
 
     private void OnLobbyCreated(Result result, Lobby lobby) {
@@ -355,8 +371,6 @@ public class ClambTogether : MelonMod {
 
         LoggerInstance.Msg("Created a new lobby");
 
-        if (!lobby.SetPublic()) LoggerInstance.Warning("Failed to set created lobby to public");
-
         this.lobby = lobby;
     }
 
@@ -366,6 +380,8 @@ public class ClambTogether : MelonMod {
         }
 
         LoggerInstance.Msg($"{member.Name} joined the lobby");
+
+        togetherUI?.OnLobbyMemberJoined(member);
     }
 
     private void OnLobbyMemberLeave(Lobby lobby, Friend member) {
@@ -380,6 +396,8 @@ public class ClambTogether : MelonMod {
         }
 
         LoggerInstance.Msg($"{member.Name} left the lobby");
+
+        togetherUI?.OnLobbyMemberLeave(member);
     }
 
     private void OnP2PSessionRequest(SteamId steamId) {
