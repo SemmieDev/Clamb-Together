@@ -231,9 +231,14 @@ public class TogetherUI {
     }
 
     private void AddLobbyMemberEntry(Friend member) {
+        var text = CreateText("Member Entry", entriesContent.transform, member.Name);
+
+        text.GetComponent<TMP_Text>().fontSize = 27;
+        text.AddComponent<LayoutElement>().minHeight = 45;
+
         lobbyMemberEntries.Add(
             member.Id,
-            CreateText("Member Entry", entriesContent.transform, member.Name)
+            text
         );
     }
 
