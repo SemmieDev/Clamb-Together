@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Globalization;
 using Il2CppTMPro;
 using Il2CppXRClimbGame;
 using MelonLoader;
@@ -256,7 +257,10 @@ public class TogetherUI {
 
         buttonRefresh.enabled = false;
 
-        var lobbiesTask = SteamMatchmaking.LobbyList.FilterDistanceWorldwide().RequestAsync();
+        var lobbiesTask = SteamMatchmaking.LobbyList
+            .FilterDistanceWorldwide()
+            .WithKeyValue("protocol-version", ClambTogether.PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture))
+            .RequestAsync();
 
         while (!lobbiesTask.IsCompleted) {
             yield return null;
@@ -291,7 +295,7 @@ public class TogetherUI {
             var button = CreateButton(
                 "Lobby Entry",
                 entriesContent.transform,
-                $"{lobby.Owner.Name}'s lobby ({lobby.MemberCount}/{lobby.MaxMembers})",
+                $"{lobby.GetData("name")}, v{lobby.GetData("mod-version")} ({lobby.MemberCount}/{lobby.MaxMembers})",
                 () => lobby.Join()
             );
 

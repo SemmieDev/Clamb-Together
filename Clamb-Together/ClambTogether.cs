@@ -12,6 +12,9 @@ using Object = UnityEngine.Object;
 namespace ClambTogether;
 
 public class ClambTogether : MelonMod {
+    public const string MOD_VERSION = "1.0.0";
+    public const uint PROTOCOL_VERSION = 1;
+
     private readonly Dictionary<ulong, OtherPlayerController> otherPlayerControllers = new ();
 
     private GameObject otherPlayerPrefab = null!;
@@ -368,6 +371,10 @@ public class ClambTogether : MelonMod {
             LoggerInstance.Warning("Created a lobby whilst not in-game");
             return;
         }
+
+        lobby.SetData("name", $"{SteamClient.Name}'s lobby");
+        lobby.SetData("mod-version", MOD_VERSION);
+        lobby.SetData("protocol-version", PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture));
 
         LoggerInstance.Msg("Created a new lobby");
 
