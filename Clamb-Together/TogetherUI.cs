@@ -4,8 +4,10 @@ using Il2CppTMPro;
 using Il2CppXRClimbGame;
 using MelonLoader;
 using Steamworks;
+using Steamworks.Data;
 using UnityEngine;
 using UnityEngine.UI;
+using Image = UnityEngine.UI.Image;
 using Object = UnityEngine.Object;
 
 namespace ClambTogether;
@@ -16,7 +18,7 @@ public class TogetherUI {
     private readonly ClambTogether clambTogether;
     private readonly GameObject buttonTemplate;
     private readonly GameObject textTemplate;
-    private readonly List<GameObject> lobbyEntries = new ();
+    private readonly Dictionary<ulong, GameObject> lobbyEntries = new ();
     private readonly Dictionary<ulong, GameObject> lobbyMemberEntries = new ();
 
     private GameObject entriesContent = null!;
@@ -77,7 +79,7 @@ public class TogetherUI {
             buttonVisibility.gameObject.SetActive(true);
         }
 
-        foreach (var lobbyEntry in lobbyEntries) {
+        foreach (var lobbyEntry in lobbyEntries.Values) {
             Object.Destroy(lobbyEntry);
         }
 
@@ -311,6 +313,20 @@ public class TogetherUI {
 
         buttonRefresh.enabled = false;
 
+        foreach (var lobbyEntry in lobbyEntries.Values) {
+            Object.Destroy(lobbyEntry);
+        }
+
+        lobbyEntries.Clear();
+
+        foreach (var friend in SteamFriends.GetFriends()) {
+            if (!friend.IsPlayingThisGame || !friend.GameInfo.HasValue || !friend.GameInfo.Value.Lobby.HasValue) continue;
+
+            var lobby = friend.GameInfo.Value.Lobby.Value;
+
+            AddLobbyEntry(lobby);
+        }
+
         var lobbiesTask = SteamMatchmaking.LobbyList
             .FilterDistanceWorldwide()
             .WithKeyValue("protocol-version", ClambTogether.PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture))
@@ -339,24 +355,24 @@ public class TogetherUI {
 
         clambTogether.LoggerInstance.Msg("Lobbies refreshed");
 
-        foreach (var lobbyEntry in lobbyEntries) {
-            Object.Destroy(lobbyEntry);
-        }
-
-        lobbyEntries.Clear();
-
         foreach (var lobby in lobbiesTask.Result) {
-            var button = CreateButton(
-                "Lobby Entry",
-                entriesContent.transform,
-                $"{lobby.GetData("name")}, v{lobby.GetData("mod-version")} ({lobby.MemberCount}/{lobby.MaxMembers})",
-                () => lobby.Join()
-            );
-
-            button.AddComponent<LayoutElement>().minHeight = 45;
-
-            lobbyEntries.Add(button);
+            AddLobbyEntry(lobby);
         }
+    }
+
+    private void AddLobbyEntry(Lobby lobby) {
+        if (lobbyEntries.ContainsKey(lobby.Id)) return;
+
+        var button = CreateButton(
+            "Lobby Entry",
+            entriesContent.transform,
+            $"{lobby.GetData("name")}, v{lobby.GetData("mod-version")} ({lobby.MemberCount}/{lobby.MaxMembers})",
+            () => lobby.Join()
+        );
+
+        button.AddComponent<LayoutElement>().minHeight = 45;
+
+        lobbyEntries.Add(lobby.Id, button);
     }
 
     private static GameObject NewUIGameObject(string name, Transform parent) {
