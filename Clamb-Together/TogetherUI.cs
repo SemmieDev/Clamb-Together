@@ -20,9 +20,8 @@ public class TogetherUI {
     private readonly Dictionary<ulong, GameObject> lobbyMemberEntries = new ();
 
     private GameObject entriesContent = null!;
-    private Button buttonCreateLeave = null!;
-    private TMP_Text buttonTextNormalCreateLeave = null!;
-    private TMP_Text buttonTextHighlightedCreateLeave = null!;
+    private Button buttonCreate = null!;
+    private Button buttonLeave = null!;
     private Button buttonRefresh = null!;
 
     public TogetherUI(ClambTogether clambTogether) {
@@ -64,9 +63,8 @@ public class TogetherUI {
     }
 
     public void OnLobbyEntered() {
-        buttonTextNormalCreateLeave.text = "Leave Lobby";
-        buttonTextHighlightedCreateLeave.text = "Leave Lobby";
-        buttonCreateLeave.interactable = true;
+        buttonCreate.gameObject.SetActive(false);
+        buttonLeave.gameObject.SetActive(true);
 
         foreach (var lobbyEntry in lobbyEntries) {
             Object.Destroy(lobbyEntry);
@@ -80,8 +78,9 @@ public class TogetherUI {
     }
 
     public void OnLobbyLeft() {
-        buttonTextNormalCreateLeave.text = "Create Lobby";
-        buttonTextHighlightedCreateLeave.text = "Create Lobby";
+        buttonCreate.gameObject.SetActive(true);
+        buttonLeave.gameObject.SetActive(false);
+        buttonCreate.interactable = true;
 
         foreach (var gameObject in lobbyMemberEntries.Values) {
             Object.Destroy(gameObject);
@@ -191,17 +190,17 @@ public class TogetherUI {
 
         buttonRefresh = CreateButton("Button Refresh", buttons.transform, "Refresh", RefreshLobbies).GetComponent<Button>();
 
-        var createButton = CreateButton("Button Create/Leave Lobby", buttons.transform, "Create Lobby", () => {
-            if (clambTogether.GetLobby().Id == 0) {
-                buttonCreateLeave.interactable = false;
-                clambTogether.CreateLobby();
-            } else {
-                clambTogether.LeaveLobby();
-            }
-        });
-        buttonCreateLeave = createButton.GetComponent<Button>();
-        buttonTextNormalCreateLeave = createButton.transform.Find("Normal/Text").GetComponent<TMP_Text>();
-        buttonTextHighlightedCreateLeave = createButton.transform.Find("Highlighted/Text").GetComponent<TMP_Text>();
+        buttonCreate = CreateButton("Button Create Lobby", buttons.transform, "Create Lobby", () => {
+            buttonCreate.interactable = false;
+            clambTogether.CreateLobby();
+        }).GetComponent<Button>();
+
+        buttonLeave = CreateButton("Button Leave Lobby", buttons.transform, "Leave Lobby", () => {
+            // This shouldn't have to be a coroutine, but buttonLeave won't disable when it's not
+            MelonCoroutines.Start(LeaveLobbyCoroutine());
+        }).GetComponent<Button>();
+
+        buttonLeave.gameObject.SetActive(false);
 
         return panelTogether;
     }
@@ -246,6 +245,12 @@ public class TogetherUI {
             member.Id,
             text
         );
+    }
+
+    private IEnumerator LeaveLobbyCoroutine() {
+        yield return null;
+
+        clambTogether.LeaveLobby();
     }
 
     private void RefreshLobbies() {
