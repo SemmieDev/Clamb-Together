@@ -29,6 +29,7 @@ public class TogetherUI {
     private Button buttonCreate = null!;
     private Button buttonLeave = null!;
     private byte visibility;
+    private Lobby lobbyPendingRefresh;
 
     public TogetherUI(ClambTogether clambTogether) {
         this.clambTogether = clambTogether;
@@ -88,6 +89,12 @@ public class TogetherUI {
         foreach (var member in lobby.Members) {
             AddLobbyMemberEntry(member);
         }
+    }
+
+    public void OnLobbyDataChanged(Lobby lobby) {
+        if (lobbyPendingRefresh.Id != lobby.Id) return;
+
+        lobbyPendingRefresh = new Lobby();
     }
 
     public void OnLobbyLeft() {
@@ -324,12 +331,26 @@ public class TogetherUI {
 
             var lobby = friend.GameInfo.Value.Lobby.Value;
 
+            lobbyPendingRefresh = lobby;
+            lobby.Refresh();
+
+            while (lobbyPendingRefresh.Id == lobby.Id) {
+                yield return null;
+
+                if (clambTogether.GetLobby().Id != 0) {
+                    buttonRefresh.enabled = true;
+                    yield break;
+                }
+            }
+
+            if (lobby.GetData("protocol-version") != ClambTogether.protocolVersionString) continue;
+
             AddLobbyEntry(lobby);
         }
 
         var lobbiesTask = SteamMatchmaking.LobbyList
             .FilterDistanceWorldwide()
-            .WithKeyValue("protocol-version", ClambTogether.PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture))
+            .WithKeyValue("protocol-version", ClambTogether.protocolVersionString)
             .RequestAsync();
 
         while (!lobbiesTask.IsCompleted) {

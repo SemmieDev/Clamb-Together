@@ -16,6 +16,8 @@ public class ClambTogether : MelonMod {
     public const string MOD_VERSION = "1.0.0";
     public const uint PROTOCOL_VERSION = 1;
 
+    public static readonly string protocolVersionString = PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture);
+
     private readonly Dictionary<ulong, OtherPlayerController> otherPlayerControllers = new ();
 
     private GameObject otherPlayerPrefab = null!;
@@ -85,6 +87,7 @@ public class ClambTogether : MelonMod {
 
         SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
         SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
+        SteamMatchmaking.OnLobbyDataChanged += OnLobbyDataChanged;
         SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
         SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
 
@@ -398,11 +401,15 @@ public class ClambTogether : MelonMod {
 
         lobby.SetData("name", $"{SteamClient.Name}'s lobby");
         lobby.SetData("mod-version", MOD_VERSION);
-        lobby.SetData("protocol-version", PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture));
+        lobby.SetData("protocol-version", protocolVersionString);
 
         LoggerInstance.Msg("Created a new lobby");
 
         this.lobby = lobby;
+    }
+
+    private void OnLobbyDataChanged(Lobby lobby) {
+        togetherUI?.OnLobbyDataChanged(lobby);
     }
 
     private void OnLobbyMemberJoined(Lobby lobby, Friend member) {
