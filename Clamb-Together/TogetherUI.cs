@@ -21,8 +21,12 @@ public class TogetherUI {
 
     private GameObject entriesContent = null!;
     private Button buttonRefresh = null!;
+    private Button buttonVisibility = null!;
+    private TMP_Text normalTextVisibility = null!;
+    private TMP_Text highlightedTextVisibility = null!;
     private Button buttonCreate = null!;
     private Button buttonLeave = null!;
+    private byte visibility;
 
     public TogetherUI(ClambTogether clambTogether) {
         this.clambTogether = clambTogether;
@@ -67,19 +71,26 @@ public class TogetherUI {
         buttonCreate.gameObject.SetActive(false);
         buttonLeave.gameObject.SetActive(true);
 
+        var lobby = clambTogether.GetLobby();
+
+        if (lobby.Owner.Id == SteamClient.SteamId) {
+            buttonVisibility.gameObject.SetActive(true);
+        }
+
         foreach (var lobbyEntry in lobbyEntries) {
             Object.Destroy(lobbyEntry);
         }
 
         lobbyEntries.Clear();
 
-        foreach (var member in clambTogether.GetLobby().Members) {
+        foreach (var member in lobby.Members) {
             AddLobbyMemberEntry(member);
         }
     }
 
     public void OnLobbyLeft() {
         buttonRefresh.gameObject.SetActive(true);
+        buttonVisibility.gameObject.SetActive(false);
         buttonCreate.gameObject.SetActive(true);
         buttonLeave.gameObject.SetActive(false);
         buttonCreate.interactable = true;
@@ -192,6 +203,35 @@ public class TogetherUI {
 
         buttonRefresh = CreateButton("Button Refresh", buttons.transform, "Refresh", RefreshLobbies).GetComponent<Button>();
 
+        buttonVisibility = CreateButton("Button Visibility", buttons.transform, "Private", () => {
+            var lobby = clambTogether.GetLobby();
+
+            if (++visibility > 2) visibility = 0;
+
+            switch (visibility) {
+                case 0: {
+                    lobby.SetPrivate();
+                    normalTextVisibility.text = "Private";
+                    highlightedTextVisibility.text = "Private";
+                    break;
+                }
+                case 1: {
+                    lobby.SetFriendsOnly();
+                    normalTextVisibility.text = "Friends Only";
+                    highlightedTextVisibility.text = "Friends Only";
+                    break;
+                }
+                case 2: {
+                    lobby.SetPublic();
+                    normalTextVisibility.text = "Public";
+                    highlightedTextVisibility.text = "Public";
+                    break;
+                }
+            }
+        }, out normalTextVisibility, out highlightedTextVisibility).GetComponent<Button>();
+
+        buttonVisibility.gameObject.SetActive(false);
+
         buttonCreate = CreateButton("Button Create Lobby", buttons.transform, "Create Lobby", () => {
             buttonCreate.interactable = false;
             clambTogether.CreateLobby();
@@ -208,11 +248,18 @@ public class TogetherUI {
     }
 
     private GameObject CreateButton(string name, Transform parent, string text, Action clickedHandler) {
+        return CreateButton(name, parent, text, clickedHandler, out _, out _);
+    }
+
+    private GameObject CreateButton(string name, Transform parent, string text, Action clickedHandler, out TMP_Text normalText, out TMP_Text highlightedText) {
         var button = Object.Instantiate(buttonTemplate, parent, false);
 
+        normalText = button.transform.Find("Normal/Text").GetComponent<TMP_Text>();
+        highlightedText = button.transform.Find("Highlighted/Text").GetComponent<TMP_Text>();
+
         button.name = name;
-        button.transform.Find("Normal/Text").GetComponent<TMP_Text>().text = text;
-        button.transform.Find("Highlighted/Text").GetComponent<TMP_Text>().text = text;
+        normalText.text = text;
+        highlightedText.text = text;
 
         var onClick = new Button.ButtonClickedEvent();
         button.GetComponent<Button>().onClick = onClick;

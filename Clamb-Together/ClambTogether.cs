@@ -372,6 +372,8 @@ public class ClambTogether : MelonMod {
             return;
         }
 
+        lobby.SetPrivate();
+
         lobby.SetData("name", $"{SteamClient.Name}'s lobby");
         lobby.SetData("mod-version", MOD_VERSION);
         lobby.SetData("protocol-version", PROTOCOL_VERSION.ToString(CultureInfo.InvariantCulture));
