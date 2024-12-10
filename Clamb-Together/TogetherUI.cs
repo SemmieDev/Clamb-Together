@@ -20,9 +20,9 @@ public class TogetherUI {
     private readonly Dictionary<ulong, GameObject> lobbyMemberEntries = new ();
 
     private GameObject entriesContent = null!;
+    private Button buttonRefresh = null!;
     private Button buttonCreate = null!;
     private Button buttonLeave = null!;
-    private Button buttonRefresh = null!;
 
     public TogetherUI(ClambTogether clambTogether) {
         this.clambTogether = clambTogether;
@@ -63,6 +63,7 @@ public class TogetherUI {
     }
 
     public void OnLobbyEntered() {
+        buttonRefresh.gameObject.SetActive(false);
         buttonCreate.gameObject.SetActive(false);
         buttonLeave.gameObject.SetActive(true);
 
@@ -78,6 +79,7 @@ public class TogetherUI {
     }
 
     public void OnLobbyLeft() {
+        buttonRefresh.gameObject.SetActive(true);
         buttonCreate.gameObject.SetActive(true);
         buttonLeave.gameObject.SetActive(false);
         buttonCreate.interactable = true;
