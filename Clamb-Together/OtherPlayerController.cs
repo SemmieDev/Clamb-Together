@@ -1,4 +1,5 @@
-﻿using MelonLoader;
+﻿using Il2CppTMPro;
+using MelonLoader;
 using UnityEngine;
 
 namespace ClambTogether;
@@ -9,6 +10,9 @@ public class OtherPlayerController : MonoBehaviour {
     private Transform leftHand = null!;
     private Transform rightHand = null!;
     private Transform hammer = null!;
+    private Camera camera = null!;
+    private Transform nameplate = null!;
+    private TMP_Text nameplateText = null!;
 
     private Vector3 targetHeadPosition;
     private Quaternion targetHeadRotation;
@@ -31,6 +35,11 @@ public class OtherPlayerController : MonoBehaviour {
     private float interpolationProgress;
 
     public OtherPlayerController(IntPtr ptr) : base(ptr) {}
+
+    public void SetName(string name) {
+        nameplateText.text = name;
+        nameplateText.fontSizeMin = 0;
+    }
 
     public void UpdateTransforms(
         Vector3 headPosition,
@@ -81,11 +90,17 @@ public class OtherPlayerController : MonoBehaviour {
         leftHand = transform.GetChild(1);
         rightHand = transform.GetChild(2);
         hammer = transform.GetChild(3);
+        camera = Camera.main!;
+        nameplate = transform.GetChild(4);
+        nameplateText = nameplate.GetComponent<TMP_Text>();
 
         transform.position = new Vector3(0, -100, 0); // Fixes issue with IK not wanting to go below ground level
     }
 
     private void Update() {
+        nameplate.position = head.position + new Vector3(0, 1, 0);
+        nameplate.rotation = Quaternion.LookRotation(nameplate.position - camera.transform.position);
+
         if (interpolationProgress <= 0) return;
 
         interpolationProgress -= Time.deltaTime;

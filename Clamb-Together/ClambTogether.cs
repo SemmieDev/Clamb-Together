@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppRootMotion.FinalIK;
+using Il2CppTMPro;
 using Il2CppXRClimbGame;
 using MelonLoader;
 using Steamworks;
@@ -165,7 +166,7 @@ public class ClambTogether : MelonMod {
         UpdatePacketData.WriteTransform(ref offset, localHammer);
 
         foreach (var member in lobby.Members) {
-            if (member.Id == SteamClient.SteamId) continue;
+            //if (member.Id == SteamClient.SteamId) continue;
 
             unsafe {
                 SteamNetworking.SendP2PPacket(
@@ -200,11 +201,13 @@ public class ClambTogether : MelonMod {
             if (!exists) {
                 if (lobby.Members.All(member => member.Id != sender)) continue;
 
+                var name = new Friend(sender).Name;
                 var gameObject = Object.Instantiate(otherPlayerPrefab);
 
                 gameObject.SetActive(true);
-                gameObject.name = $"Other Player ({new Friend(sender).Name})";
+                gameObject.name = $"Other Player ({name})";
                 otherPlayerController = gameObject.GetComponent<OtherPlayerController>();
+                otherPlayerController.SetName(name);
 
                 otherPlayerControllers.Add(sender, otherPlayerController);
             }
@@ -255,11 +258,13 @@ public class ClambTogether : MelonMod {
         var leftHand = new GameObject("Left Hand").transform;
         var rightHand = new GameObject("Right Hand").transform;
         var hammer = new GameObject("Hammer").transform;
+        var nameplate = new GameObject("Nameplate").transform;
 
-        head.parent = otherPlayerPrefab.transform;
-        leftHand.parent = otherPlayerPrefab.transform;
-        rightHand.parent = otherPlayerPrefab.transform;
-        hammer.parent = otherPlayerPrefab.transform;
+        head.SetParent(otherPlayerPrefab.transform, false);
+        leftHand.SetParent(otherPlayerPrefab.transform, false);
+        rightHand.SetParent(otherPlayerPrefab.transform, false);
+        hammer.SetParent(otherPlayerPrefab.transform, false);
+        nameplate.SetParent(otherPlayerPrefab.transform, false);
 
         otherPlayerPrefab.AddComponent<OtherPlayerController>();
 
@@ -333,6 +338,23 @@ public class ClambTogether : MelonMod {
 
         clonedHammerModel.transform.localPosition = Vector3.zero;
         clonedHammerModel.transform.localRotation = Quaternion.identity;
+
+        var nameplateGameObject = nameplate.gameObject;
+
+        nameplateGameObject.layer = LayerMask.NameToLayer("UI");
+
+        var nameplateTransform = nameplateGameObject.AddComponent<RectTransform>();
+        nameplateTransform.sizeDelta = new Vector2(3, 1);
+
+        var nameplateCanvas = nameplateGameObject.AddComponent<Canvas>();
+        nameplateCanvas.renderMode = RenderMode.WorldSpace;
+
+        var nameplateText = nameplateGameObject.AddComponent<TextMeshProUGUI>();
+        nameplateText.enableAutoSizing = true;
+        nameplateText.horizontalAlignment = HorizontalAlignmentOptions.Center;
+        nameplateText.verticalAlignment = VerticalAlignmentOptions.Middle;
+        nameplateText.raycastTarget = false;
+        nameplateText.font = GameObject.FindWithTag("Character Controller").transform.Find("UI Main Menu/Main Menu/Canvas_Main Menu/Panel Settings/Disolve Mask/Panel/Panel Settings/Text Paused").GetComponent<TMP_Text>().font;
     }
 
     private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friend) {
