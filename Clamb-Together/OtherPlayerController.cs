@@ -98,24 +98,24 @@ public class OtherPlayerController : MonoBehaviour {
     }
 
     private void Update() {
+        if (interpolationProgress > 0) {
+            interpolationProgress -= Time.deltaTime;
+
+            if (interpolationProgress < 0) interpolationProgress = 0;
+
+            var interpolationDelta = interpolationProgress / UpdatePacketData.UPDATE_DELAY;
+
+            head.position = Vector3.Lerp(targetHeadPosition, lastHeadPosition, interpolationDelta);
+            head.rotation = Quaternion.Slerp(targetHeadRotation, lastHeadRotation, interpolationDelta);
+            leftHand.position = Vector3.Lerp(targetLeftHandPosition, lastLeftHandPosition, interpolationDelta);
+            leftHand.rotation = Quaternion.Slerp(targetLeftHandRotation, lastLeftHandRotation, interpolationDelta);
+            rightHand.position = Vector3.Lerp(targetRightHandPosition, lastRightHandPosition, interpolationDelta);
+            rightHand.rotation = Quaternion.Slerp(targetRightHandRotation, lastRightHandRotation, interpolationDelta);
+            hammer.position = Vector3.Lerp(targetHammerPosition, lastHammerPosition, interpolationDelta);
+            hammer.rotation = Quaternion.Slerp(targetHammerRotation, lastHammerRotation, interpolationDelta);
+        }
+
         nameplate.position = head.position + new Vector3(0, 1, 0);
         nameplate.rotation = Quaternion.LookRotation(nameplate.position - camera.transform.position);
-
-        if (interpolationProgress <= 0) return;
-
-        interpolationProgress -= Time.deltaTime;
-
-        if (interpolationProgress < 0) interpolationProgress = 0;
-
-        var interpolationDelta = interpolationProgress / UpdatePacketData.UPDATE_DELAY;
-
-        head.position = Vector3.Lerp(targetHeadPosition, lastHeadPosition, interpolationDelta);
-        head.rotation = Quaternion.Slerp(targetHeadRotation, lastHeadRotation, interpolationDelta);
-        leftHand.position = Vector3.Lerp(targetLeftHandPosition, lastLeftHandPosition, interpolationDelta);
-        leftHand.rotation = Quaternion.Slerp(targetLeftHandRotation, lastLeftHandRotation, interpolationDelta);
-        rightHand.position = Vector3.Lerp(targetRightHandPosition, lastRightHandPosition, interpolationDelta);
-        rightHand.rotation = Quaternion.Slerp(targetRightHandRotation, lastRightHandRotation, interpolationDelta);
-        hammer.position = Vector3.Lerp(targetHammerPosition, lastHammerPosition, interpolationDelta);
-        hammer.rotation = Quaternion.Slerp(targetHammerRotation, lastHammerRotation, interpolationDelta);
     }
 }
