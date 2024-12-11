@@ -347,7 +347,7 @@ public class ClambTogether : MelonMod {
         nameplateGameObject.layer = LayerMask.NameToLayer("UI");
 
         var nameplateTransform = nameplateGameObject.AddComponent<RectTransform>();
-        nameplateTransform.sizeDelta = new Vector2(3, 1);
+        nameplateTransform.sizeDelta = new Vector2(3, 0.5f);
 
         var nameplateCanvas = nameplateGameObject.AddComponent<Canvas>();
         nameplateCanvas.renderMode = RenderMode.WorldSpace;
